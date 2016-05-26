@@ -24,4 +24,13 @@ public class Variable {
         this.value = value;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "name: " + name + " value: " + value;
+    }
+
 }

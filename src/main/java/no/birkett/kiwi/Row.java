@@ -1,6 +1,7 @@
 package no.birkett.kiwi;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,7 +12,7 @@ public class Row {
 
     private double constant;
 
-    private Map<Symbol, Double> cells = new HashMap<Symbol, Double>();
+    private Map<Symbol, Double> cells = new LinkedHashMap<>();
 
     public Row() {
         this(0);
@@ -22,7 +23,7 @@ public class Row {
     }
 
     public Row(Row other) {
-        this.cells = other.cells;
+        this.cells = new LinkedHashMap<>(other.cells);
         this.constant = other.constant;
     }
 
@@ -59,11 +60,10 @@ public class Row {
      * is zero, the symbol will be removed from the row
      */
     void insert(Symbol symbol, double coefficient) {
-
         Double existingCoefficient = cells.get(symbol);
 
         if (existingCoefficient != null) {
-            coefficient = existingCoefficient;
+            coefficient += existingCoefficient;
         }
 
         if (Util.nearZero(coefficient)) {
@@ -96,11 +96,21 @@ public class Row {
     void insert(Row other, double coefficient) {
         this.constant += other.constant * coefficient;
 
-        Set<Map.Entry<Symbol, Double>> map = other.getCells().entrySet();
+        for(Symbol s: other.cells.keySet()){
+            double coeff = other.cells.get(s) * coefficient;
 
-        for (Map.Entry<Symbol, Double> entry : map) {
-            double coeff = entry.getValue() * coefficient;
-            insert(entry.getKey(), coeff);
+            //insert(s, coeff);  this line looks different than the c++
+
+            //changes start here
+            Double value = this.cells.get(s);
+            if(value == null){
+                this.cells.put(s, 0.0);
+            }
+            double temp = this.cells.get(s) + coeff;
+            this.cells.put(s, temp);
+            if(Util.nearZero(temp)){
+                this.cells.remove(s);
+            }
         }
     }
 
@@ -113,7 +123,7 @@ public class Row {
      * @param other
      */
     void insert(Row other) {
-        insert(other, 0);
+        insert(other, 1.0);
     }
 
     /**
@@ -134,11 +144,12 @@ public class Row {
     void reverseSign() {
         this.constant = -this.constant;
 
-        Set<Map.Entry<Symbol, Double>> map = getCells().entrySet();
-
-        for (Map.Entry<Symbol, Double> entry : map) {
-            entry.setValue(-entry.getValue());
+        Map<Symbol, Double> newCells = new LinkedHashMap<>();
+        for(Symbol s: cells.keySet()){
+            double value = - cells.get(s);
+            newCells.put(s, value);
         }
+        this.cells = newCells;
     }
 
     /**
@@ -158,11 +169,12 @@ public class Row {
         cells.remove(symbol);
         this.constant *= coeff;
 
-        Set<Map.Entry<Symbol, Double>> map = getCells().entrySet();
-
-        for (Map.Entry<Symbol, Double> entry : map) {
-            entry.setValue(entry.getValue() * coeff);
+        HashMap<Symbol, Double> newCells = new LinkedHashMap<>();
+        for(Symbol s: cells.keySet()){
+            double value = cells.get(s) * coeff;
+            newCells.put(s, value);
         }
+        this.cells = newCells;
     }
 
     /**

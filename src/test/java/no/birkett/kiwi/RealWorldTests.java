@@ -2,9 +2,7 @@ package no.birkett.kiwi;
 
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -121,14 +119,15 @@ public class RealWorldTests {
             "more.left == container.leftPadding",
             "more.right == container.rightPadding",
 
-            "container.height == more.bottom + container.buttonPadding"};
+            "container.height == more.bottom + container.buttonPadding"
+    };
 
 
     public ConstraintParser.CassowaryVariableResolver createVariableResolver(final Solver solver, final HashMap<String, HashMap<String, Variable>> nodeHashMap) {
         ConstraintParser.CassowaryVariableResolver variableResolver = new ConstraintParser.CassowaryVariableResolver() {
 
             private Variable getVariableFromNode(HashMap<String, Variable> node, String variableName) {
-                
+
                 try {
                     if (node.containsKey(variableName)) {
                         return node.get(variableName);
@@ -147,9 +146,9 @@ public class RealWorldTests {
                         return variable;
                     }
                 } catch(DuplicateConstraintException e) {
-
+                    e.printStackTrace();
                 } catch (UnsatisfiableConstraintException e) {
- 
+                    e.printStackTrace();
                 }
                 
                 return null;
@@ -196,18 +195,23 @@ public class RealWorldTests {
         return variableResolver;
     }
 
+    @Test
+    public void testSimple() {
+        int a = 20;
+        assertEquals(20, a);
+    }
 
     @Test
-    public void testGridLayout() throws DuplicateConstraintException, UnsatisfiableConstraintException {
+    public void testGridLayout() throws DuplicateConstraintException, UnsatisfiableConstraintException, NonlinearExpressionException {
 
         final Solver solver = new Solver();
-
-        final HashMap<String, HashMap<String, Variable>> nodeHashMap = new HashMap<String, HashMap<String, Variable>>();
+        final HashMap<String, HashMap<String, Variable>> nodeHashMap = new HashMap<>();
 
         ConstraintParser.CassowaryVariableResolver variableResolver = createVariableResolver(solver, nodeHashMap);
 
         for (String constraint : CONSTRAINTS) {
-            solver.addConstraint(ConstraintParser.parseConstraint(constraint, variableResolver));
+            Constraint con = ConstraintParser.parseConstraint(constraint, variableResolver);
+            solver.addConstraint(con);
         }
 
         solver.addConstraint(ConstraintParser.parseConstraint("container.width == 300", variableResolver));
@@ -238,7 +242,6 @@ public class RealWorldTests {
 
         assertEquals(485, nodeHashMap.get("title4").get("top").getValue(), EPSILON);
         assertEquals(485, nodeHashMap.get("title5").get("top").getValue(), EPSILON);
-
     }
 
   /*  @Test
@@ -315,10 +318,10 @@ public class RealWorldTests {
         assertEquals(485, nodeHashMap.get("title5").get("top").value(), EPSILON);
 
     }
-
+*/
   
     @Test
-    public void testGridX1000() throws ConstraintNotFound {
+    public void testGridX1000() throws DuplicateConstraintException, UnsatisfiableConstraintException, NonlinearExpressionException {
 
         long nanoTime = System.nanoTime();
         for (int i = 0; i < 1000; i++) {
@@ -327,6 +330,7 @@ public class RealWorldTests {
         System.out.println("testGridX1000 took " + (System.nanoTime() - nanoTime) / 1000000);
     }
 
+    /*
     @Test
     public void testGridWithEditsX1000() throws CassowaryError {
 

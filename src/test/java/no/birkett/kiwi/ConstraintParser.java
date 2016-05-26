@@ -1,8 +1,6 @@
 package no.birkett.kiwi;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +19,7 @@ public class ConstraintParser {
         Expression resolveConstant(String name);
     }
 
-    public static Constraint parseConstraint(String constraintString, CassowaryVariableResolver variableResolver) {
+    public static Constraint parseConstraint(String constraintString, CassowaryVariableResolver variableResolver) throws NonlinearExpressionException {
 
         Matcher matcher = pattern.matcher(constraintString);
         matcher.find();
@@ -31,8 +29,7 @@ public class ConstraintParser {
             Expression expression = resolveExpression(matcher.group(3), variableResolver);
             double strength = parseStrength(matcher.group(4));
 
-            return new Constraint(Symbolics.subtract(variable, expression), operator);
-            
+            return new Constraint(Symbolics.subtract(variable, expression), operator, strength);
         } else {
             throw new RuntimeException("could not parse " +   constraintString);
         }
@@ -66,7 +63,7 @@ public class ConstraintParser {
         return strength;
     }
 
-    public static Expression resolveExpression(String expressionString, CassowaryVariableResolver variableResolver) {
+    public static Expression resolveExpression(String expressionString, CassowaryVariableResolver variableResolver) throws NonlinearExpressionException {
 
         List<String> postFixExpression = infixToPostfix(tokenizeExpression(expressionString));
 
